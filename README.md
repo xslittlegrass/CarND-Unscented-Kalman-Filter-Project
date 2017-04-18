@@ -76,3 +76,7 @@ This implementation can achieve a RMSE of `[0.07204, 0.0785547, 0.62881, 0.57076
 The following plots show the ground truth and estimated velocity. They again agree well. The NIS is also shown below. From the NIS we can check the consistence of the Kalman filter process. In this example, the NIS looks good and only have a few measurements greater than 7.8 (90% line).
 
 <img src="./images/UKF-velocity-NIS.png" width="400"/>
+
+This plot shows the results of the Kalman filter tracker. Note that when running the tracker, the data saving folder must be the same folder where the unscented Kalman filter executable locates.
+
+<img src="./images/Kalman-filter-tracker.png" width="400"/>
