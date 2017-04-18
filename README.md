@@ -61,6 +61,7 @@ In `Prediction()` there are three helper functions:
     PredictSigmaPoints(double delta_t)                     // predict sigma points at k+1|k
     PredictMeanAndCovariance()                             // predict state and covariance at k+1|k using sigma points at k+1|k
 
+The `util` folder contains an ipython notebook for visualizing the output results of the Kalman filter, as well as a script that communicates between the simulator and the compiled c++ kalman filter program.
 
 ## Results
 
@@ -73,7 +74,7 @@ This implementation can achieve a RMSE of `[0.07204, 0.0785547, 0.62881, 0.57076
 
 <img src="./images/UKF-position.png" width="400"/>
 
-The following plots show the ground truth and estimated velocity. They again agree well. The NIS is also shown below. From the NIS we can check the consistence of the Kalman filter process. In this example, the NIS looks good and only have a few measurements greater than 7.8 (90% line).
+The following plots show the ground truth and estimated velocity. They again agree well. The NIS is also shown below. From the NIS we can check the consistence of the Kalman filter process. In this example, the NIS looks good and only have a few measurements greater than 7.8 (95% line).
 
 <img src="./images/UKF-velocity-NIS.png" width="400"/>
 
