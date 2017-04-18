@@ -1,46 +1,78 @@
-# Unscented Kalman Filter Project Starter Code
-Self-Driving Car Engineer Nanodegree Program
+# Unscented Kalman Filter Project
 
----
 
-## Dependencies
+This is a project for Udacity self-driving car Nanodegree program. The aim of this project is to implement an unscented Kalman filter in C++ to fuse laser and radar measurements of a moving object.
 
-* cmake >= v3.5
-* make >= v4.1
-* gcc/g++ >= v5.4
+## Structure of unscented Kalman filter for CTRV model
 
-## Basic Build Instructions
+The constant turn rate and velocity magnitude model (CTRV) assumes the moving object has a constant turning rate and a constant magnitude of velocity.
 
-1. Clone this repo.
-2. Make a build directory: `mkdir build && cd build`
-3. Compile: `cmake .. && make`
-4. Run it: `./UnscentedKF path/to/input.txt path/to/output.txt`. You can find
-   some sample inputs in 'data/'.
-    - eg. `./UnscentedKF ../data/sample-laser-radar-measurement-data-1.txt output.txt`
+<img src="./images/CTRV-model.png" width="300"/>
 
-## Editor Settings
+The state vector for this model contains:
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
+1. the position along x-axis
+2. the position along y-axis
+3. the magnitude of velocity
+4. the yaw angle
+5. the change rate of yaw angle
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
+The laser can directly measure:
 
-## Code Style
+1. the position along x-axis
+2. the position along y-axis
 
-Please stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html) as much as possible.
+The radar can directly measure:
 
-## Generating Additional Data
+1. the radial distance from origin (range)
+2. the angle between the radial distance and the x-axis (bearing)
+3. the change rate of the distance from origin (range rate)
 
-This is optional!
+<img src="./images/state-vector-measurement.png" width="300"/>
 
-If you'd like to generate your own radar and lidar data, see the
-[utilities repo](https://github.com/udacity/CarND-Mercedes-SF-Utilities) for
-Matlab scripts that can generate additional data.
+Since the process model is nonlinear, the original Kalman filter cannot be applied. Instead we us the unscented Kalman filter (UKF) to estimate the state of the system. The UKF uses sigma points to approximate the non-gaussian distributed uncertainties. The UKF processing chain contains:
 
-## Project Instructions and Rubric
+- Prediction
+  * Generate sigma points
+  * Predict sigma points
+  * Predict mean and covariance
+- Update  
+  * Predict measurement
+  * Update state
 
-This information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/c3eb3583-17b2-4d83-abf7-d852ae1b9fff/concepts/4d0420af-0527-4c9f-a5cd-56ee0fe4f09e)
-for instructions and the project rubric.
+<img src="./images/UKF-chain.png" width="300"/>
+
+## Code structure
+
+The implementation of the UKF is in the `UKF` class. The main function that process a measurement data is
+
+    ProcessMeasurement(MeasurementPackage meas_package)    // process one measurement data
+
+This function will be called repeatedly when a measurement arrives. In this function, the prediction and update steps will be called:
+
+    Prediction(double delta_t)                             // predict state and covariance at k+1|k
+    UpdateLidar(MeasurementPackage meas_package)           // update state and covariance to k+1|k+1 using laser data
+    UpdateRadar(MeasurementPackage meas_package)           // update state and covariance to k+1|k+1 using laser data
+    Initialization(MeasurementPackage meas_package)        // initialization using the first measurement
+
+In `Prediction()` there are three helper functions:
+
+    CalculateAugmentedSigmaPoints()                        // calculate sigma points at state k|k
+    PredictSigmaPoints(double delta_t)                     // predict sigma points at k+1|k
+    PredictMeanAndCovariance()                             // predict state and covariance at k+1|k using sigma points at k+1|k
+
+
+## Results
+
+In this implementation, the process noise settings are:
+
+1. `std_a_ = 1` which means the process noise standard deviation longitudinal acceleration is 1 m/s^2
+2. `std_yawdd_ = 0.6` which means the process noise standard deviation yaw acceleration is 0.6 rad/s^2
+
+This implementation can achieve a RMSE of `[0.07204, 0.0785547, 0.62881, 0.570763]` for data set 1 and `[0.19344, 0.189351, 0.444612, 0.533302]` for data set 2. The following plot shows the ground truth, measurements and the UKF-estimated of the object positions for data set 2. The estimated positions agrees well with the ground truth.
+
+<img src="./images/UKF-position.png" width="400"/>
+
+The following plots show the ground truth and estimated velocity. They again agree well. The NIS is also shown below. From the NIS we can check the consistence of the Kalman filter process. In this example, the NIS looks good and only have a few measurements greater than 7.8 (90% line).
+
+<img src="./images/UKF-velocity-NIS.png" width="400"/>

@@ -22,7 +22,7 @@ UKF::UKF() {
   std_a_ = 1;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 0.5;
+  std_yawdd_ = 0.6;
 
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -468,7 +468,7 @@ void UKF::PredictSigmaPoints(double delta_t) {
     yawd_p = yawd_p + nu_yawdd*delta_t;
 
     // avoid zero division
-    if (std::abs(px_p) < 0.0001 && std::abs(py_p) < 0.0001) px_p = 0.0001;
+    if (fabs(px_p) < 0.0001 && fabs(py_p) < 0.0001) px_p = 0.0001;
 
     //write predicted sigma point into right column
     Xsig_pred_(0,i) = px_p;
@@ -540,7 +540,7 @@ void UKF::Initialization(MeasurementPackage meas_package) {
     double px = rho*cos(phi);
     double py = rho*sin(phi);
 
-    x_ << px,py,abs(meas_package.raw_measurements_[2]),0,0;
+    x_ << px,py,fabs(meas_package.raw_measurements_[2]),0,0;
   }
 
   /*
